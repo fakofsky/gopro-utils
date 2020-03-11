@@ -7,7 +7,7 @@ import (
 )
 
 // Represents one second of telemetry data
-type TELEM struct {
+type Telemetry struct {
 	Accl        []ACCL
 	Gps         []GPS5
 	Gyro        []GYRO
@@ -19,7 +19,7 @@ type TELEM struct {
 
 // the thing we want, json-wise
 // GPS data might have a generated timestamp and derived track
-type TELEM_OUT struct {
+type TelemetryOut struct {
 	*GPS5
 
 	GpsAccuracy uint16  `json:"gps_accuracy,omitempty"`
@@ -29,10 +29,10 @@ type TELEM_OUT struct {
 }
 
 var pp *geo.Point = geo.NewPoint(10, 10)
-var last_good_track float64 = 0
+var lastGoodTrack float64 = 0
 
 // zeroes out the telem struct
-func (t *TELEM) Clear() {
+func (t *Telemetry) Clear() {
 	t.Accl = t.Accl[:0]
 	t.Gps = t.Gps[:0]
 	t.Gyro = t.Gyro[:0]
@@ -40,13 +40,13 @@ func (t *TELEM) Clear() {
 }
 
 // determines if the telem has data
-func (t *TELEM) IsZero() bool {
+func (t *Telemetry) IsZero() bool {
 	// hack.
 	return t.Time.Time.IsZero()
 }
 
 // try to populate a timestamp for every GPS row. probably bogus.
-func (t *TELEM) FillTimes(until time.Time) error {
+func (t *Telemetry) FillTimes(until time.Time) error {
 	len := len(t.Gps)
 	diff := until.Sub(t.Time.Time)
 
@@ -61,11 +61,11 @@ func (t *TELEM) FillTimes(until time.Time) error {
 	return nil
 }
 
-func (t *TELEM) ShitJson() []TELEM_OUT {
-	var out []TELEM_OUT
+func (t *Telemetry) ShitJson() []TelemetryOut {
+	var out []TelemetryOut
 
 	for i, _ := range t.Gps {
-		jobj := TELEM_OUT{&t.Gps[i], 0, 0, 0, 0}
+		jobj := TelemetryOut{&t.Gps[i], 0, 0, 0, 0}
 		if 0 == i {
 			jobj.GpsAccuracy = t.GpsAccuracy.Accuracy
 			jobj.GpsFix = t.GpsFix.F
@@ -83,9 +83,9 @@ func (t *TELEM) ShitJson() []TELEM_OUT {
 		// only set the track if speed is over 1 m/s
 		// if it's slower (eg, stopped) it will drift all over with the location
 		if jobj.GPS5.Speed > 1 {
-			last_good_track = jobj.Track
+			lastGoodTrack = jobj.Track
 		} else {
-			jobj.Track = last_good_track
+			jobj.Track = lastGoodTrack
 		}
 
 		out = append(out, jobj)

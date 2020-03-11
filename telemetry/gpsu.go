@@ -5,13 +5,15 @@ import (
 	"time"
 )
 
+const gpsuPacketLenght = 16
+
 // GPS-acquired timestamp
 type GPSU struct {
 	Time time.Time
 }
 
 func (gpsu *GPSU) Parse(bytes []byte) error {
-	if 16 != len(bytes) {
+	if gpsuPacketLenght != len(bytes) {
 		return errors.New("Invalid length GPSU packet")
 	}
 

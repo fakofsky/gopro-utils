@@ -15,7 +15,7 @@ func stringInSlice(a string, list []string) bool {
 	return false
 }
 
-func Read(f io.Reader) (*TELEM, error) {
+func Read(f io.Reader) (*Telemetry, error) {
 	labels := []string{
 		"ACCL",
 		"DEVC",
@@ -55,6 +55,12 @@ func Read(f io.Reader) (*TELEM, error) {
 		"ORIN",
 		"ALLD",
 		"ORIO",
+		"CORI", //Camera ORIentation	frame rate	n/a	Quaterions for the camera orientation since capture start
+		"IORI", //Image ORIentation	frame rate	n/a	Quaterions for the image orientation relative to the camera body
+		"GRAV", //GRAvity Vector	frame rate	n/a	Vector for the direction for gravitiy
+		"WNDM", //Wind Processing	10Hz	n/a	marks whether wind processing is active
+		"MWET", //Microphone is WET	10Hz	n/a	marks whether some of the microphones are wet
+		"AALP", //Audio Levels	10Hz	dBFS	RMS and peak audio levels in dBFS
 	}
 
 	label := make([]byte, 4, 4) // 4 byte ascii label of data
@@ -64,7 +70,7 @@ func Read(f io.Reader) (*TELEM, error) {
 	s := SCAL{}
 
 	// the full telemetry for this period
-	t := &TELEM{}
+	t := &Telemetry{}
 
 	for {
 		// pick out the label
@@ -78,7 +84,7 @@ func Read(f io.Reader) (*TELEM, error) {
 		if !stringInSlice(label_string, labels) {
 			//skip label if not recognised, instead of stopping
 			fmt.Printf("Could not find label in list: %s (%x)\n", label, label)
-			//return nil, err 
+			//return nil, err
 		}
 
 		// pick out the label description
